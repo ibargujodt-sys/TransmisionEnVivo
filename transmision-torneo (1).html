@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0F2A1C">
+<title>Transmisión Torneo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F2A1C; --panel:#173622; --panel-light:#20492E; --panel-lighter:#2A5A3A;
+    --line: rgba(245,241,232,0.14); --chalk:#F5F1E8; --chalk-dim:#B9C4B9;
+    --gold:#D9A441; --favor-light:#4CAE72; --contra-light:#D4574A; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{ background: radial-gradient(ellipse at top, #163726 0%, var(--bg) 60%); color: var(--chalk); font-family:'Inter', system-ui, sans-serif; min-height:100vh; }
+  body.pantalla-mode{ overflow:hidden; }
+  body.pantalla-mode.bg-transparente{ background: transparent !important; }
+  body.pantalla-mode:not(.bg-transparente){ background:#0B1F14; }
+  .hidden{ display:none !important; }
+  .app{ max-width: 900px; margin:0 auto; padding: 20px; }
+  h1{ font-family:'Oswald', sans-serif; font-size:26px; margin:0 0 6px; }
+  p.lead{ color:var(--chalk-dim); margin:0 0 18px; font-size:14px; }
+  .hint{ color:var(--chalk-dim); font-size:12.5px; margin:0 0 10px; }
+  .btn{ border:none; cursor:pointer; font-family:'Inter',sans-serif; font-weight:600; border-radius:10px; padding: 11px 16px; font-size:14.5px; }
+  .btn:active{ transform: scale(0.96); }
+  .btn-gold{ background: var(--gold); color:#20240F; }
+  .btn-ghost{ background: transparent; border:1px solid var(--line); color:var(--chalk); }
+  .btn-ghost:hover{ background: var(--panel-light); }
+  .btn-flex{ flex:1; min-width:200px; padding:22px; font-size:17px; }
+  .launcher-btns{ display:flex; gap:14px; flex-wrap:wrap; }
+  .card{ background: var(--panel); border:1px solid var(--line); border-radius: var(--radius); padding:18px; margin-bottom:16px; }
+  .card h3{ font-family:'Oswald',sans-serif; font-size:14px; text-transform:uppercase; letter-spacing:0.05em; color:var(--chalk-dim); margin:0 0 14px; }
+  input[type=text], input[type=number]{ background: var(--panel-light); border:1px solid var(--line); color: var(--chalk); padding: 10px 12px; border-radius: 9px; font-size:14px; font-family:'Inter',sans-serif; }
+  .team-row{ display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+  .team-row input[type=text]{ flex:1; min-width:140px; }
+  .score-box{ display:flex; align-items:center; gap:8px; }
+  .score-num{ font-family:'Oswald',sans-serif; font-size:22px; min-width:28px; text-align:center; }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+  .row input[type=text]{ flex:1; min-width:140px; }
+  .sponsor-item{ display:flex; align-items:center; gap:10px; background: var(--panel-light); border-radius:9px; padding:8px 10px; margin-bottom:8px; }
+  .sponsor-item img{ width:40px; height:40px; object-fit:contain; background:#fff; border-radius:6px; }
+  .sponsor-item span{ flex:1; font-size:13.5px; word-break:break-all; }
+  .del-btn{ background:none; border:none; color:var(--chalk-dim); cursor:pointer; font-size:15px; }
+  .del-btn:hover{ color: var(--contra-light); }
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .switch{ position:relative; width:44px; height:24px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider-tog{ position:absolute; cursor:pointer; inset:0; background: var(--panel-lighter); border-radius:24px; transition:.2s; }
+  .slider-tog:before{ content:""; position:absolute; height:18px; width:18px; left:3px; bottom:3px; background:var(--chalk); border-radius:50%; transition:.2s; }
+  input:checked + .slider-tog{ background: var(--gold); }
+  input:checked + .slider-tog:before{ transform: translateX(20px); }
+  .sync-status{ font-size:13px; margin-bottom:16px; padding:8px 12px; border-radius:9px; background: var(--panel); border:1px solid var(--line); }
+  .sync-status.ok{ color: var(--favor-light); }
+  .sync-status.wait{ color: var(--gold); }
+  .sync-status.bad{ color: var(--contra-light); }
+  .modal-backdrop{ position:fixed; inset:0; background: rgba(5,15,10,0.65); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
+  .modal{ background: var(--panel); border:1px solid var(--line); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 460px; }
+  .modal h3{ font-family:'Oswald',sans-serif; margin:0 0 8px; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+
+  /* ---------- pantalla de transmisión (todo en vw para que escale a cualquier tamaño) ---------- */
+  #pantalla-screen{ position:fixed; inset:0; overflow:hidden; }
+  .pv-bar{ position:absolute; top:2vw; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:1.4vw; background:rgba(15,42,28,0.92); border:0.1vw solid var(--line); border-radius:1vw; padding:0.7vw 1.8vw; white-space:nowrap; }
+  .pv-team{ font-family:'Oswald',sans-serif; font-size:1.7vw; font-weight:600; }
+  .pv-score{ font-family:'Oswald',sans-serif; font-size:2.6vw; font-weight:700; color:var(--gold); min-width:2.2vw; text-align:center; }
+  .pv-sep{ color:var(--chalk-dim); font-size:1.6vw; }
+  .pv-clock{ font-family:'Oswald',sans-serif; font-size:1.4vw; color:var(--chalk-dim); border-left:0.1vw solid var(--line); padding-left:1.2vw; min-width:4.5vw; text-align:center; }
+  .pv-gol{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); opacity:0; background:linear-gradient(180deg,#1B4B2E,#0E2C1B); border:0.2vw solid var(--gold); border-radius:1.6vw; padding:3vw 6vw; text-align:center; transition:transform .35s ease, opacity .35s ease; pointer-events:none; }
+  .pv-gol.activo{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+  .pv-gol .t{ font-family:'Oswald',sans-serif; font-size:7vw; font-weight:700; color:var(--gold); letter-spacing:0.05em; margin:0; line-height:1; }
+  .pv-gol .e{ font-family:'Oswald',sans-serif; font-size:2.8vw; color:var(--chalk); margin:1vw 0 0; text-transform:uppercase; }
+  .pv-gol .m{ font-family:'Oswald',sans-serif; font-size:2vw; color:var(--chalk-dim); margin:0.4vw 0 0; }
+  .pv-sp{ position:absolute; bottom:2vw; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:1.2vw; background:rgba(15,42,28,0.92); border:0.1vw solid var(--line); border-radius:1vw; padding:0.8vw 1.8vw; opacity:0; transition:opacity .4s ease; }
+  .pv-sp.activo{ opacity:1; }
+  .pv-sp img{ height:4.5vw; max-width:16vw; object-fit:contain; }
+  .pv-sp span{ font-family:'Oswald',sans-serif; font-size:1.6vw; color:var(--chalk); }
+</style>
+</head>
+<body>
+
+<!-- ===== INICIO ===== -->
+<div id="launcher-screen" class="app">
+  <h1>Transmisión del torneo</h1>
+  <p class="lead">Elegí qué pantalla abrir. El panel de control maneja todo; la pantalla de transmisión es la que se ve en el video.</p>
+  <div class="launcher-btns">
+    <button class="btn btn-gold btn-flex" onclick="mostrarPantalla('control')">🎛️ Panel de control</button>
+    <button class="btn btn-ghost btn-flex" onclick="mostrarPantalla('pantalla')">📺 Pantalla de transmisión</button>
+  </div>
+  <div style="margin-top:16px;">
+    <button class="btn btn-ghost" onclick="abrirConfigSync()">⚙️ Conectar sincronización</button>
+  </div>
+</div>
+
+<!-- ===== PANEL DE CONTROL ===== -->
+<div id="control-screen" class="app hidden">
+  <h1>Panel de control</h1>
+  <p class="lead">Desde acá manejás el marcador, el cartel de gol y la publicidad.</p>
+  <div id="sync-status" class="sync-status wait">Conectando…</div>
+
+  <div class="card">
+    <h3>Equipos y marcador</h3>
+    <div class="team-row">
+      <input type="text" id="nombre-a" placeholder="Nombre equipo A" oninput="actualizarNombres()">
+      <div class="score-box">
+        <button class="btn btn-ghost" onclick="sumarGol('A',-1)">−</button>
+        <span class="score-num" id="marcador-a">0</span>
+        <button class="btn btn-gold" onclick="sumarGol('A',1)">⚽ Gol</button>
+      </div>
+    </div>
+    <div class="team-row">
+      <input type="text" id="nombre-b" placeholder="Nombre equipo B" oninput="actualizarNombres()">
+      <div class="score-box">
+        <button class="btn btn-ghost" onclick="sumarGol('B',-1)">−</button>
+        <span class="score-num" id="marcador-b">0</span>
+        <button class="btn btn-gold" onclick="sumarGol('B',1)">⚽ Gol</button>
+      </div>
+    </div>
+    <div class="row" style="margin-top:6px;">
+      <button class="btn btn-ghost" onclick="ocultarCartel()">Ocultar cartel de gol</button>
+      <button class="btn btn-ghost" onclick="reiniciarMarcador()">Reiniciar marcador</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Cronómetro</h3>
+    <div class="row">
+      <span class="score-num" id="crono-display" style="font-size:26px; min-width:70px;">00:00</span>
+      <button class="btn btn-gold" id="crono-btn" onclick="toggleCrono()">▶ Iniciar</button>
+      <button class="btn btn-ghost" onclick="reiniciarCrono()">Reiniciar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toggle-row" style="margin-bottom:12px;">
+      <h3 style="margin:0;">Publicidad</h3>
+      <label class="switch"><input type="checkbox" id="pub-toggle" onchange="actualizarOpciones()"><span class="slider-tog"></span></label>
+    </div>
+    <p class="hint">Subí los logos al mismo repositorio de GitHub (Add file → Upload files) y acá escribí el nombre del archivo exactamente como quedó (ej: logo-banco.png). También sirve un link completo https://…</p>
+    <div class="row">
+      <input type="text" id="sponsor-nombre" placeholder="Nombre del sponsor">
+      <input type="text" id="sponsor-logo" placeholder="Archivo o link del logo">
+      <button class="btn btn-gold" onclick="agregarSponsor()">+ Agregar</button>
+    </div>
+    <div id="sponsors-list"></div>
+    <div class="row" style="margin-top:8px;">
+      <label style="font-size:13px; color:var(--chalk-dim);">Rotar cada</label>
+      <input type="number" id="pub-intervalo" value="8" min="3" style="width:64px;" oninput="actualizarOpciones()">
+      <span style="font-size:13px; color:var(--chalk-dim);">segundos</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toggle-row" style="margin-bottom:12px;">
+      <h3 style="margin:0;">Fondo transparente (para Streamlabs / OBS)</h3>
+      <label class="switch"><input type="checkbox" id="transp-toggle" checked onchange="actualizarOpciones()"><span class="slider-tog"></span></label>
+    </div>
+    <p class="hint">Dejalo activado para superponer los gráficos sobre la cámara. Desactivalo si vas a mostrar la pantalla en una TV.</p>
+  </div>
+
+  <div class="card">
+    <h3>Pantalla de transmisión</h3>
+    <p class="hint">Este es el link que va en la Fuente de navegador de Streamlabs. Ya incluye la conexión.</p>
+    <input type="text" id="link-pantalla" readonly style="width:100%; margin-bottom:10px;">
+    <div class="row">
+      <button class="btn btn-gold" onclick="copiarLink()">📋 Copiar link</button>
+      <button class="btn btn-ghost" onclick="abrirPantallaNueva()">Abrir pantalla en otra pestaña</button>
+    </div>
+  </div>
+
+  <button class="btn btn-ghost" onclick="volverLauncher()">← Volver</button>
+</div>
+
+<!-- ===== PANTALLA DE TRANSMISIÓN ===== -->
+<div id="pantalla-screen" class="hidden">
+  <div class="pv-bar">
+    <span class="pv-team" id="pv-nombre-a">Equipo A</span>
+    <span class="pv-score" id="pv-marcador-a">0</span>
+    <span class="pv-sep">–</span>
+    <span class="pv-score" id="pv-marcador-b">0</span>
+    <span class="pv-team" id="pv-nombre-b">Equipo B</span>
+    <span class="pv-clock" id="pv-crono">00:00</span>
+  </div>
+  <div class="pv-gol" id="pv-gol">
+    <p class="t">¡GOL!</p>
+    <p class="e" id="pv-gol-equipo"></p>
+    <p class="m" id="pv-gol-marcador"></p>
+  </div>
+  <div class="pv-sp" id="pv-sp">
+    <img id="pv-sp-img" src="" alt="">
+    <span id="pv-sp-nombre"></span>
+  </div>
+</div>
+
+<!-- ===== MODAL SINCRONIZACIÓN ===== -->
+<div id="sync-backdrop" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3>Conectar sincronización</h3>
+    <p class="hint">Pegá la URL del script de Google que hace de puente entre el control y la pantalla (termina en /exec).</p>
+    <input type="text" id="sync-url-input" placeholder="https://script.google.com/macros/s/..../exec" style="width:100%;">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="cerrarConfigSync()">Cancelar</button>
+      <button class="btn btn-gold" onclick="guardarConfigSync()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function fmt(seg){
+  seg = Math.max(0, Math.floor(seg));
+  return String(Math.floor(seg/60)).padStart(2,'0') + ':' + String(seg%60).padStart(2,'0');
+}
+
+/* ---------- configuración de la conexión ---------- */
+const params = new URLSearchParams(location.search);
+if(params.get('sync')) lsSet('transmision-sync-url', params.get('sync'));
+let syncUrl = params.get('sync') || lsGet('transmision-sync-url') || '';
+
+/* ---------- estado compartido ---------- */
+let estado = {
+  rev:0,
+  nombreA:'Equipo A', nombreB:'Equipo B', marcadorA:0, marcadorB:0,
+  cronoBase:0, cronoCorriendo:false, cronoVersion:0, cronoTs:0,
+  golId:0, golEquipo:'', ocultarId:0,
+  publicidadOn:false, sponsors:[], sponsorIntervalo:8,
+  fondoTransparente:true
+};
+
+/* cronómetro: cada pantalla corre su propio reloj local y se re-ancla cuando cambia la versión,
+   así no depende de que los relojes de las dos compus estén sincronizados */
+const crono = { base:0, corriendo:false, ancla:0, version:null };
+function sincronizarCrono(d){
+  if(d.cronoVersion === crono.version) return;
+  const primeraVez = (crono.version === null);
+  crono.version = d.cronoVersion;
+  crono.corriendo = !!d.cronoCorriendo;
+  crono.base = (d.cronoBase || 0) + ((primeraVez && d.cronoCorriendo && d.cronoTs) ? (Date.now() - d.cronoTs)/1000 : 0);
+  crono.ancla = Date.now();
+}
+function cronoSeg(){ return crono.base + (crono.corriendo ? (Date.now() - crono.ancla)/1000 : 0); }
+
+/* ---------- lectura / escritura ---------- */
+function localLeer(){ try{ const v = lsGet('transmision-estado'); return v ? JSON.parse(v) : null; }catch(e){ return null; } }
+function localEscribir(){ lsSet('transmision-estado', JSON.stringify(estado)); }
+
+// devuelve el estado, null si todavía no hay nada guardado, o undefined si falló la conexión
+async function leerEstado(){
+  if(!syncUrl) return localLeer();
+  try{
+    const r = await fetch(syncUrl + (syncUrl.includes('?') ? '&' : '?') + 't=' + Date.now());
+    const d = await r.json();
+    return (d && typeof d === 'object' && Object.keys(d).length) ? d : null;
+  }catch(e){ return undefined; }
+}
+
+let enviando = false, hayPendiente = false, ultimoCambio = 0;
+async function enviarRemoto(){
+  if(enviando){ hayPendiente = true; return; }
+  enviando = true;
+  do{
+    hayPendiente = false;
+    try{
+      await fetch(syncUrl, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(estado) });
+    }catch(e){}
+  }while(hayPendiente);
+  enviando = false;
+}
+function guardarEstado(){
+  estado.rev = (estado.rev || 0) + 1;
+  ultimoCambio = Date.now();
+  localEscribir();
+  if(syncUrl) enviarRemoto();
+}
+
+/* ---------- navegación ---------- */
+function mostrarPantalla(cual){
+  ['launcher-screen','control-screen','pantalla-screen'].forEach(id => $(id).classList.add('hidden'));
+  if(cual === 'control'){ $('control-screen').classList.remove('hidden'); iniciarControl(); }
+  else if(cual === 'pantalla'){ $('pantalla-screen').classList.remove('hidden'); iniciarPantalla(); }
+}
+function volverLauncher(){
+  $('control-screen').classList.add('hidden');
+  $('launcher-screen').classList.remove('hidden');
+}
+
+function abrirConfigSync(){ $('sync-url-input').value = syncUrl; $('sync-backdrop').classList.remove('hidden'); }
+function cerrarConfigSync(){ $('sync-backdrop').classList.add('hidden'); }
+function guardarConfigSync(){
+  syncUrl = $('sync-url-input').value.trim();
+  lsSet('transmision-sync-url', syncUrl);
+  cerrarConfigSync();
+  alert(syncUrl ? 'Conectado.' : 'Se borró la conexión.');
+}
+
+/* ================= PANEL DE CONTROL ================= */
+let controlIniciado = false;
+async function iniciarControl(){
+  if(!controlIniciado){
+    controlIniciado = true;
+    setInterval(chequearSync, 1000);
+    setInterval(() => { $('crono-display').innerText = fmt(cronoSeg()); }, 250);
+  }
+  const d = await leerEstado();
+  if(d){ estado = { ...estado, ...d }; sincronizarCrono(estado); }
+  $('nombre-a').value = estado.nombreA;
+  $('nombre-b').value = estado.nombreB;
+  $('pub-toggle').checked = !!estado.publicidadOn;
+  $('pub-intervalo').value = estado.sponsorIntervalo || 8;
+  $('transp-toggle').checked = !!estado.fondoTransparente;
+  renderMarcador();
+  renderSponsors();
+  renderBotonCrono();
+  $('link-pantalla').value = linkPantalla();
+}
+
+async function chequearSync(){
+  const el = $('sync-status');
+  if(!syncUrl){
+    el.className = 'sync-status wait';
+    el.textContent = 'Sin conexión remota: solo funciona entre pestañas de este mismo navegador. Para usar Streamlabs conectá la sincronización.';
+    return;
+  }
+  const d = await leerEstado();
+  if(d === undefined){ el.className = 'sync-status bad'; el.textContent = '⚠ No se puede leer el puente de Google. Revisá internet y la URL.'; return; }
+  if(d === null && estado.rev === 0){ el.className = 'sync-status ok'; el.textContent = '✓ Conectado. Esperando el primer cambio.'; return; }
+  if(d && d.rev === estado.rev){ el.className = 'sync-status ok'; el.textContent = '✓ Sincronizado con la pantalla de transmisión.'; return; }
+  if(Date.now() - ultimoCambio > 4000){ el.className = 'sync-status bad'; el.textContent = '⚠ Los cambios no están llegando al puente. Revisá que el script esté publicado con acceso "Cualquier usuario".'; return; }
+  el.className = 'sync-status wait'; el.textContent = '⏳ Enviando…';
+}
+
+function renderMarcador(){ $('marcador-a').innerText = estado.marcadorA; $('marcador-b').innerText = estado.marcadorB; }
+function renderBotonCrono(){ $('crono-btn').innerText = crono.corriendo ? '⏸ Pausar' : '▶ Iniciar'; }
+
+function actualizarNombres(){
+  estado.nombreA = $('nombre-a').value.trim() || 'Equipo A';
+  estado.nombreB = $('nombre-b').value.trim() || 'Equipo B';
+  guardarEstado();
+}
+function actualizarOpciones(){
+  estado.publicidadOn = $('pub-toggle').checked;
+  estado.sponsorIntervalo = Math.max(3, Number($('pub-intervalo').value) || 8);
+  estado.fondoTransparente = $('transp-toggle').checked;
+  guardarEstado();
+}
+
+function sumarGol(equipo, delta){
+  if(equipo === 'A') estado.marcadorA = Math.max(0, estado.marcadorA + delta);
+  else estado.marcadorB = Math.max(0, estado.marcadorB + delta);
+  renderMarcador();
+  if(delta > 0){
+    estado.golId = Date.now();
+    estado.golEquipo = equipo === 'A' ? estado.nombreA : estado.nombreB;
+  }
+  guardarEstado();
+}
+function ocultarCartel(){ estado.ocultarId = Date.now(); guardarEstado(); }
+function reiniciarMarcador(){
+  if(!confirm('¿Reiniciar el marcador a 0-0?')) return;
+  estado.marcadorA = 0; estado.marcadorB = 0;
+  renderMarcador(); guardarEstado();
+}
+
+function toggleCrono(){
+  const seg = cronoSeg();
+  crono.corriendo = !crono.corriendo;
+  crono.base = seg; crono.ancla = Date.now();
+  estado.cronoBase = seg; estado.cronoCorriendo = crono.corriendo; estado.cronoTs = Date.now();
+  estado.cronoVersion = (estado.cronoVersion || 0) + 1;
+  crono.version = estado.cronoVersion;
+  renderBotonCrono(); guardarEstado();
+}
+function reiniciarCrono(){
+  crono.base = 0; crono.corriendo = false; crono.ancla = Date.now();
+  estado.cronoBase = 0; estado.cronoCorriendo = false; estado.cronoTs = Date.now();
+  estado.cronoVersion = (estado.cronoVersion || 0) + 1;
+  crono.version = estado.cronoVersion;
+  renderBotonCrono(); guardarEstado();
+}
+
+function resolverLogo(v){
+  v = v.trim();
+  if(!v) return '';
+  try{ return new URL(v, location.href).href; }catch(e){ return v; }
+}
+function agregarSponsor(){
+  const nombre = $('sponsor-nombre').value.trim();
+  const url = resolverLogo($('sponsor-logo').value);
+  if(!nombre && !url) return;
+  estado.sponsors.push({ id: Date.now(), nombre, url });
+  $('sponsor-nombre').value = ''; $('sponsor-logo').value = '';
+  renderSponsors(); guardarEstado();
+}
+function borrarSponsor(id){
+  estado.sponsors = estado.sponsors.filter(s => s.id !== id);
+  renderSponsors(); guardarEstado();
+}
+function renderSponsors(){
+  const cont = $('sponsors-list');
+  if(!estado.sponsors.length){ cont.innerHTML = ''; return; }
+  cont.innerHTML = estado.sponsors.map(s => `
+    <div class="sponsor-item">
+      ${s.url ? `<img src="${esc(s.url)}" alt="">` : ''}
+      <span>${esc(s.nombre || s.url)}</span>
+      <button class="del-btn" onclick="borrarSponsor(${s.id})">✕</button>
+    </div>`).join('');
+}
+
+function linkPantalla(){
+  return location.href.split('?')[0].split('#')[0] + '?view=pantalla' + (syncUrl ? '&sync=' + encodeURIComponent(syncUrl) : '');
+}
+async function copiarLink(){
+  const link = linkPantalla();
+  $('link-pantalla').value = link;
+  try{ await navigator.clipboard.writeText(link); alert('Link copiado.'); }
+  catch(e){ $('link-pantalla').select(); document.execCommand('copy'); alert('Link copiado.'); }
+}
+function abrirPantallaNueva(){ window.open(linkPantalla(), '_blank'); }
+
+/* ================= PANTALLA DE TRANSMISIÓN ================= */
+const pv = { golVisto:null, ocultarVisto:null, spIdx:-1, spCount:0, bannerT:null };
+let pantallaIniciada = false;
+
+function iniciarPantalla(){
+  document.body.classList.add('pantalla-mode', 'bg-transparente');
+  if(pantallaIniciada) return;
+  pantallaIniciada = true;
+  pollPantalla();
+  setInterval(pollPantalla, 800);
+  setInterval(() => { $('pv-crono').innerText = fmt(cronoSeg()); }, 250);
+}
+
+function mostrarBanner(){
+  $('pv-gol-equipo').textContent = estado.golEquipo || '';
+  $('pv-gol-marcador').textContent = estado.nombreA + ' ' + estado.marcadorA + ' – ' + estado.marcadorB + ' ' + estado.nombreB;
+  $('pv-gol').classList.add('activo');
+  clearTimeout(pv.bannerT);
+  pv.bannerT = setTimeout(() => $('pv-gol').classList.remove('activo'), 5000);
+}
+
+async function pollPantalla(){
+  const d = await leerEstado();
+  if(!d) return;
+  estado = { ...estado, ...d };
+
+  document.body.classList.toggle('bg-transparente', !!estado.fondoTransparente);
+  $('pv-nombre-a').textContent = estado.nombreA;
+  $('pv-nombre-b').textContent = estado.nombreB;
+  $('pv-marcador-a').textContent = estado.marcadorA;
+  $('pv-marcador-b').textContent = estado.marcadorB;
+  sincronizarCrono(estado);
+
+  // cartel de gol: se dispara cuando cambia el golId (no depende de relojes)
+  if(pv.golVisto === null){ pv.golVisto = estado.golId || 0; pv.ocultarVisto = estado.ocultarId || 0; }
+  else{
+    if(estado.golId !== pv.golVisto){ pv.golVisto = estado.golId; mostrarBanner(); }
+    if(estado.ocultarId !== pv.ocultarVisto){ pv.ocultarVisto = estado.ocultarId; clearTimeout(pv.bannerT); $('pv-gol').classList.remove('activo'); }
+  }
+
+  // publicidad rotativa
+  const lista = estado.sponsors || [];
+  const band = $('pv-sp');
+  if(estado.publicidadOn && lista.length){
+    const iv = Math.max(3, estado.sponsorIntervalo || 8);
+    const idx = Math.floor(Date.now() / 1000 / iv) % lista.length;
+    if(idx !== pv.spIdx || lista.length !== pv.spCount){
+      pv.spIdx = idx; pv.spCount = lista.length;
+      const sp = lista[idx];
+      $('pv-sp-img').src = sp.url || '';
+      $('pv-sp-img').style.display = sp.url ? 'block' : 'none';
+      $('pv-sp-nombre').textContent = sp.nombre || '';
+    }
+    band.classList.add('activo');
+  } else {
+    band.classList.remove('activo');
+    pv.spIdx = -1;
+  }
+}
+
+/* ---------- arranque: abre directo la vista pedida en el link ---------- */
+(function(){
+  const vista = params.get('view');
+  if(vista === 'pantalla' || vista === 'control') mostrarPantalla(vista);
+})();
+</script>
+</body>
+</html>
