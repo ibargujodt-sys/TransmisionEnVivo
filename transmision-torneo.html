@@ -31,6 +31,15 @@
   .btn-ghost:hover{ background: var(--panel-light); }
   .btn-flex{ flex:1; min-width:200px; padding:22px; font-size:17px; }
   .launcher-btns{ display:flex; gap:14px; flex-wrap:wrap; }
+  .modo-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .modo-btn{ flex:1; min-width:170px; background: var(--panel-light); border:1px solid var(--line); color:var(--chalk); font-family:'Inter',sans-serif; font-weight:600; font-size:16px; padding:16px; border-radius:12px; cursor:pointer; }
+  .modo-btn.active{ background: var(--gold); color:#20240F; border-color: var(--gold); }
+  .q-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .q-btn{ background: var(--panel-light); border:1px solid var(--line); color:var(--chalk); font-family:'Oswald',sans-serif; font-weight:600; font-size:16px; padding:10px 18px; border-radius:10px; cursor:pointer; min-width:64px; }
+  .q-btn.active{ background: var(--gold); color:#20240F; border-color: var(--gold); }
+  .escudo-row{ display:flex; align-items:center; gap:10px; margin:-2px 0 12px; }
+  .escudo-row img{ width:36px; height:36px; object-fit:contain; background:#fff; border-radius:6px; display:none; flex-shrink:0; font-size:10px; color:#000; }
+  .escudo-row input{ flex:1; min-width:140px; }
   .card{ background: var(--panel); border:1px solid var(--line); border-radius: var(--radius); padding:18px; margin-bottom:16px; }
   .card h3{ font-family:'Oswald',sans-serif; font-size:14px; text-transform:uppercase; letter-spacing:0.05em; color:var(--chalk-dim); margin:0 0 14px; }
   input[type=text], input[type=number]{ background: var(--panel-light); border:1px solid var(--line); color: var(--chalk); padding: 10px 12px; border-radius: 9px; font-size:14px; font-family:'Inter',sans-serif; }
@@ -68,15 +77,32 @@
   .pv-score{ font-family:'Oswald',sans-serif; font-size:2.6vw; font-weight:700; color:var(--gold); min-width:2.2vw; text-align:center; }
   .pv-sep{ color:var(--chalk-dim); font-size:1.6vw; }
   .pv-clock{ font-family:'Oswald',sans-serif; font-size:1.4vw; color:var(--chalk-dim); border-left:0.1vw solid var(--line); padding-left:1.2vw; min-width:4.5vw; text-align:center; }
-  .pv-gol{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); opacity:0; background:linear-gradient(180deg,#1B4B2E,#0E2C1B); border:0.2vw solid var(--gold); border-radius:1.6vw; padding:3vw 6vw; text-align:center; transition:transform .35s ease, opacity .35s ease; pointer-events:none; }
+  .pv-cuarto{ font-family:'Oswald',sans-serif; font-size:1.4vw; font-weight:700; color:#20240F; background:var(--gold); border-radius:0.6vw; padding:0.2vw 0.8vw; }
+  .pv-gol{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.6); opacity:0; background:linear-gradient(180deg,#1B4B2E,#0E2C1B); border:0.25vw solid var(--gold); border-radius:2vw; padding:2.5vw 6vw; text-align:center; transition:transform .45s cubic-bezier(.2,1.4,.4,1), opacity .3s ease; pointer-events:none; box-shadow:0 0 6vw rgba(217,164,65,0.35); }
   .pv-gol.activo{ opacity:1; transform:translate(-50%,-50%) scale(1); }
-  .pv-gol .t{ font-family:'Oswald',sans-serif; font-size:7vw; font-weight:700; color:var(--gold); letter-spacing:0.05em; margin:0; line-height:1; }
-  .pv-gol .e{ font-family:'Oswald',sans-serif; font-size:2.8vw; color:var(--chalk); margin:1vw 0 0; text-transform:uppercase; }
+  .pv-gol .esc{ display:none; height:12vw; max-width:18vw; object-fit:contain; margin:0 auto 1vw; }
+  .pv-gol .t{ font-family:'Oswald',sans-serif; font-size:9.5vw; font-weight:700; color:var(--gold); letter-spacing:0.04em; margin:0; line-height:1; white-space:nowrap; }
+  .pv-gol .e{ font-family:'Oswald',sans-serif; font-size:3vw; color:var(--chalk); margin:1vw 0 0; text-transform:uppercase; }
   .pv-gol .m{ font-family:'Oswald',sans-serif; font-size:2vw; color:var(--chalk-dim); margin:0.4vw 0 0; }
   .pv-sp{ position:absolute; bottom:2vw; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:1.2vw; background:rgba(15,42,28,0.92); border:0.1vw solid var(--line); border-radius:1vw; padding:0.8vw 1.8vw; opacity:0; transition:opacity .4s ease; }
   .pv-sp.activo{ opacity:1; }
   .pv-sp img{ height:4.5vw; max-width:16vw; object-fit:contain; }
   .pv-sp span{ font-family:'Oswald',sans-serif; font-size:1.6vw; color:var(--chalk); }
+
+  /* pantalla de entre partidos: deja ver la cámara de fondo y muestra publicidad + próximo partido */
+  .pv-inter{ position:absolute; inset:0; z-index:5; background: rgba(11,31,20,0.30); opacity:0; pointer-events:none; transition:opacity .6s ease; }
+  #pantalla-screen.inter .pv-inter{ opacity:1; }
+  #pantalla-screen.inter .pv-bar, #pantalla-screen.inter .pv-gol, #pantalla-screen.inter .pv-sp{ opacity:0 !important; visibility:hidden; }
+  .pi-sp{ position:absolute; top:46%; left:50%; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:1.2vw; background:rgba(15,42,28,0.92); border:0.2vw solid var(--gold); border-radius:1.8vw; padding:1.6vw 2.6vw; transition:opacity .35s ease; max-width:60vw; }
+  .pi-sp.fuera{ opacity:0; }
+  .pi-plate{ background:#fff; border-radius:1.2vw; padding:1.2vw 1.8vw; display:none; }
+  .pi-plate img{ display:block; height:12vw; max-width:34vw; object-fit:contain; }
+  .pi-sp-nombre{ font-family:'Oswald',sans-serif; font-size:2.4vw; color:var(--chalk); letter-spacing:0.05em; text-transform:uppercase; text-align:center; }
+  .pi-sp-nombre.grande{ font-size:6vw; color:var(--gold); }
+  .pi-next{ display:none; position:absolute; bottom:3vw; left:50%; transform:translateX(-50%); background:rgba(15,42,28,0.92); border:0.2vw solid var(--gold); border-radius:1.6vw; padding:1.4vw 5vw; text-align:center; max-width:90vw; }
+  .pi-label{ font-family:'Oswald',sans-serif; font-size:1.8vw; letter-spacing:0.15em; color:var(--gold); }
+  .pi-match{ font-family:'Oswald',sans-serif; font-size:4vw; font-weight:700; text-transform:uppercase; margin-top:0.6vw; }
+  .pi-info{ font-family:'Oswald',sans-serif; font-size:2.2vw; color:var(--chalk-dim); margin-top:0.6vw; }
 </style>
 </head>
 <body>
@@ -101,6 +127,25 @@
   <div id="sync-status" class="sync-status wait">Conectando…</div>
 
   <div class="card">
+    <h3>Qué se ve en la transmisión</h3>
+    <div class="modo-row">
+      <button class="modo-btn" id="modo-partido" onclick="setModo('partido')">🏑 Partido en juego</button>
+      <button class="modo-btn" id="modo-inter" onclick="setModo('intermedio')">📢 Entre partidos</button>
+    </div>
+    <p class="hint" style="margin-top:8px;">"Entre partidos" tapa la cámara con una pantalla de publicidad y el próximo partido. "Partido en juego" vuelve al marcador.</p>
+  </div>
+
+  <div class="card">
+    <h3>Próximo partido</h3>
+    <div class="row">
+      <input type="text" id="prox-a" placeholder="Equipo 1" oninput="actualizarProximo()">
+      <input type="text" id="prox-b" placeholder="Equipo 2" oninput="actualizarProximo()">
+    </div>
+    <input type="text" id="prox-info" placeholder="Etapa y horario (ej: Semifinal 2 · 17:30 hs)" oninput="actualizarProximo()" style="width:100%;">
+    <p class="hint" style="margin-top:8px;">Se muestra en la pantalla de "Entre partidos". Los logos que rotan ahí son los de la tarjeta Publicidad, aunque el interruptor de esa tarjeta esté apagado.</p>
+  </div>
+
+  <div class="card">
     <h3>Equipos y marcador</h3>
     <div class="team-row">
       <input type="text" id="nombre-a" placeholder="Nombre equipo A" oninput="actualizarNombres()">
@@ -110,6 +155,7 @@
         <button class="btn btn-gold" onclick="sumarGol('A',1)">⚽ Gol</button>
       </div>
     </div>
+    <div class="escudo-row"><img id="prev-escudo-a" alt="?"><input type="text" id="escudo-a" placeholder="Escudo equipo A (archivo o link)" onchange="actualizarEscudos()"></div>
     <div class="team-row">
       <input type="text" id="nombre-b" placeholder="Nombre equipo B" oninput="actualizarNombres()">
       <div class="score-box">
@@ -118,6 +164,8 @@
         <button class="btn btn-gold" onclick="sumarGol('B',1)">⚽ Gol</button>
       </div>
     </div>
+    <div class="escudo-row"><img id="prev-escudo-b" alt="?"><input type="text" id="escudo-b" placeholder="Escudo equipo B (archivo o link)" onchange="actualizarEscudos()"></div>
+    <p class="hint">Escudos: subí la imagen al repositorio y escribí el nombre del archivo (ej: escudo-a.png), o pegá un link. Aparece en el cartel de gol.</p>
     <div class="row" style="margin-top:6px;">
       <button class="btn btn-ghost" onclick="ocultarCartel()">Ocultar cartel de gol</button>
       <button class="btn btn-ghost" onclick="reiniciarMarcador()">Reiniciar marcador</button>
@@ -125,12 +173,19 @@
   </div>
 
   <div class="card">
-    <h3>Cronómetro</h3>
+    <h3>Tiempo y cuarto</h3>
     <div class="row">
       <span class="score-num" id="crono-display" style="font-size:26px; min-width:70px;">00:00</span>
       <button class="btn btn-gold" id="crono-btn" onclick="toggleCrono()">▶ Iniciar</button>
       <button class="btn btn-ghost" onclick="reiniciarCrono()">Reiniciar</button>
     </div>
+    <div class="q-row">
+      <button class="q-btn" id="q-1" onclick="setCuarto(1)">1C</button>
+      <button class="q-btn" id="q-2" onclick="setCuarto(2)">2C</button>
+      <button class="q-btn" id="q-3" onclick="setCuarto(3)">3C</button>
+      <button class="q-btn" id="q-4" onclick="setCuarto(4)">4C</button>
+    </div>
+    <p class="hint" style="margin-top:8px;">Al cambiar de cuarto el cronómetro no se toca: usá "Reiniciar" cuando empiece el siguiente.</p>
   </div>
 
   <div class="card">
@@ -182,15 +237,28 @@
     <span class="pv-score" id="pv-marcador-b">0</span>
     <span class="pv-team" id="pv-nombre-b">Equipo B</span>
     <span class="pv-clock" id="pv-crono">00:00</span>
+    <span class="pv-cuarto" id="pv-cuarto">1C</span>
   </div>
   <div class="pv-gol" id="pv-gol">
-    <p class="t">¡GOL!</p>
+    <img class="esc" id="pv-gol-escudo" alt="">
+    <p class="t">GOOOOOOOOOL</p>
     <p class="e" id="pv-gol-equipo"></p>
     <p class="m" id="pv-gol-marcador"></p>
   </div>
   <div class="pv-sp" id="pv-sp">
     <img id="pv-sp-img" src="" alt="">
     <span id="pv-sp-nombre"></span>
+  </div>
+  <div class="pv-inter" id="pv-inter">
+    <div class="pi-sp" id="pi-sp">
+      <div class="pi-plate" id="pi-plate"><img id="pi-sp-img" alt=""></div>
+      <div class="pi-sp-nombre" id="pi-sp-nombre"></div>
+    </div>
+    <div class="pi-next" id="pi-next">
+      <div class="pi-label">PRÓXIMO PARTIDO</div>
+      <div class="pi-match" id="pi-match"></div>
+      <div class="pi-info" id="pi-info"></div>
+    </div>
   </div>
 </div>
 
@@ -227,7 +295,9 @@ let estado = {
   rev:0,
   nombreA:'Equipo A', nombreB:'Equipo B', marcadorA:0, marcadorB:0,
   cronoBase:0, cronoCorriendo:false, cronoVersion:0, cronoTs:0,
-  golId:0, golEquipo:'', ocultarId:0,
+  golId:0, golEquipo:'', golLado:'', ocultarId:0,
+  cuarto:1, escudoA:'', escudoB:'',
+  modo:'partido', proxA:'', proxB:'', proxInfo:'',
   publicidadOn:false, sponsors:[], sponsorIntervalo:8,
   fondoTransparente:true
 };
@@ -313,6 +383,14 @@ async function iniciarControl(){
   $('pub-toggle').checked = !!estado.publicidadOn;
   $('pub-intervalo').value = estado.sponsorIntervalo || 8;
   $('transp-toggle').checked = !!estado.fondoTransparente;
+  $('escudo-a').value = estado.escudoA || '';
+  $('escudo-b').value = estado.escudoB || '';
+  renderEscudosPreview();
+  renderCuarto();
+  $('prox-a').value = estado.proxA || '';
+  $('prox-b').value = estado.proxB || '';
+  $('prox-info').value = estado.proxInfo || '';
+  renderModo();
   renderMarcador();
   renderSponsors();
   renderBotonCrono();
@@ -356,10 +434,43 @@ function sumarGol(equipo, delta){
   if(delta > 0){
     estado.golId = Date.now();
     estado.golEquipo = equipo === 'A' ? estado.nombreA : estado.nombreB;
+    estado.golLado = equipo;
   }
   guardarEstado();
 }
 function ocultarCartel(){ estado.ocultarId = Date.now(); guardarEstado(); }
+
+function setCuarto(n){ estado.cuarto = n; renderCuarto(); guardarEstado(); }
+
+function setModo(m){ estado.modo = m; renderModo(); guardarEstado(); }
+function renderModo(){
+  const inter = estado.modo === 'intermedio';
+  $('modo-partido').classList.toggle('active', !inter);
+  $('modo-inter').classList.toggle('active', inter);
+}
+function actualizarProximo(){
+  estado.proxA = $('prox-a').value.trim();
+  estado.proxB = $('prox-b').value.trim();
+  estado.proxInfo = $('prox-info').value.trim();
+  guardarEstado();
+}
+function renderCuarto(){
+  for(let i = 1; i <= 4; i++){ $('q-' + i).classList.toggle('active', (estado.cuarto || 1) === i); }
+}
+function actualizarEscudos(){
+  estado.escudoA = $('escudo-a').value.trim();
+  estado.escudoB = $('escudo-b').value.trim();
+  renderEscudosPreview();
+  guardarEstado();
+}
+function renderEscudosPreview(){
+  ['a','b'].forEach(l => {
+    const raw = estado['escudo' + l.toUpperCase()] || '';
+    const img = $('prev-escudo-' + l);
+    if(raw){ img.src = resolverLogo(raw); img.style.display = 'block'; }
+    else{ img.removeAttribute('src'); img.style.display = 'none'; }
+  });
+}
 function reiniciarMarcador(){
   if(!confirm('¿Reiniciar el marcador a 0-0?')) return;
   estado.marcadorA = 0; estado.marcadorB = 0;
@@ -423,7 +534,7 @@ async function copiarLink(){
 function abrirPantallaNueva(){ window.open(linkPantalla(), '_blank'); }
 
 /* ================= PANTALLA DE TRANSMISIÓN ================= */
-const pv = { golVisto:null, ocultarVisto:null, spIdx:-1, spCount:0, bannerT:null };
+const pv = { golVisto:null, ocultarVisto:null, spIdx:-1, spCount:0, bannerT:null, piIdx:-1, piCount:0 };
 let pantallaIniciada = false;
 
 function iniciarPantalla(){
@@ -436,11 +547,59 @@ function iniciarPantalla(){
 }
 
 function mostrarBanner(){
+  const raw = estado.golLado === 'A' ? estado.escudoA : (estado.golLado === 'B' ? estado.escudoB : '');
+  const esc = $('pv-gol-escudo');
+  esc.onerror = function(){ esc.style.display = 'none'; };
+  if(raw){ esc.src = resolverLogo(raw); esc.style.display = 'block'; }
+  else{ esc.removeAttribute('src'); esc.style.display = 'none'; }
   $('pv-gol-equipo').textContent = estado.golEquipo || '';
   $('pv-gol-marcador').textContent = estado.nombreA + ' ' + estado.marcadorA + ' – ' + estado.marcadorB + ' ' + estado.nombreB;
   $('pv-gol').classList.add('activo');
   clearTimeout(pv.bannerT);
-  pv.bannerT = setTimeout(() => $('pv-gol').classList.remove('activo'), 5000);
+  pv.bannerT = setTimeout(() => $('pv-gol').classList.remove('activo'), 6000);
+}
+
+function cambiarSponsorInter(sp){
+  const box = $('pi-sp'), plate = $('pi-plate'), img = $('pi-sp-img'), nom = $('pi-sp-nombre');
+  box.classList.add('fuera');
+  setTimeout(() => {
+    nom.classList.remove('grande');
+    nom.textContent = sp.nombre || '';
+    nom.style.display = sp.nombre ? 'block' : 'none';
+    img.onerror = function(){ plate.style.display = 'none'; };
+    if(sp.url){ img.src = sp.url; plate.style.display = 'block'; } else { img.removeAttribute('src'); plate.style.display = 'none'; }
+    box.classList.remove('fuera');
+  }, 350);
+}
+
+function renderIntermedio(){
+  const lista = estado.sponsors || [];
+  if(lista.length){
+    const iv = Math.max(3, estado.sponsorIntervalo || 8);
+    const idx = Math.floor(Date.now() / 1000 / iv) % lista.length;
+    if(idx !== pv.piIdx || lista.length !== pv.piCount){
+      pv.piIdx = idx; pv.piCount = lista.length;
+      cambiarSponsorInter(lista[idx]);
+    }
+  } else if(pv.piIdx !== -2){
+    pv.piIdx = -2;
+    $('pi-plate').style.display = 'none';
+    $('pi-sp-nombre').classList.add('grande');
+    $('pi-sp-nombre').style.display = 'block';
+    $('pi-sp-nombre').textContent = 'ENTRE PARTIDOS';
+  }
+
+  const a = (estado.proxA || '').trim(), b = (estado.proxB || '').trim(), info = (estado.proxInfo || '').trim();
+  const next = $('pi-next');
+  if(a || b || info){
+    next.style.display = 'block';
+    $('pi-match').style.display = (a || b) ? 'block' : 'none';
+    $('pi-match').textContent = (a && b) ? a + '  vs  ' + b : (a || b);
+    $('pi-info').style.display = info ? 'block' : 'none';
+    $('pi-info').textContent = info;
+  } else {
+    next.style.display = 'none';
+  }
 }
 
 async function pollPantalla(){
@@ -453,6 +612,10 @@ async function pollPantalla(){
   $('pv-nombre-b').textContent = estado.nombreB;
   $('pv-marcador-a').textContent = estado.marcadorA;
   $('pv-marcador-b').textContent = estado.marcadorB;
+  $('pv-cuarto').textContent = (estado.cuarto || 1) + 'C';
+  const inter = estado.modo === 'intermedio';
+  $('pantalla-screen').classList.toggle('inter', inter);
+  if(inter) renderIntermedio(); else pv.piIdx = -1;
   sincronizarCrono(estado);
 
   // cartel de gol: se dispara cuando cambia el golId (no depende de relojes)
