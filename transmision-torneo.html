@@ -578,15 +578,47 @@ function localEscribir(){ lsSet('transmision-estado', JSON.stringify(estado)); }
 
 // devuelve el estado, null si todavía no hay nada guardado, o undefined si falló la conexión
 let dbgInfo = '';
+let usarJsonp = false; // si la lectura normal falla (pasa en Streamlabs), se usa el método alternativo
+
+// lectura alternativa: carga los datos como un <script> (no depende de los permisos CORS)
+function leerJsonp(url){
+  return new Promise((resolve, reject) => {
+    const nombre = '__puente' + Date.now() + Math.floor(Math.random() * 1000);
+    const sc = document.createElement('script');
+    let terminado = false;
+    const limpiar = () => {
+      terminado = true;
+      try{ delete window[nombre]; }catch(e){ window[nombre] = undefined; }
+      if(sc.parentNode) sc.parentNode.removeChild(sc);
+    };
+    const timer = setTimeout(() => { if(terminado) return; limpiar(); reject(new Error('sin respuesta (¿actualizaste el script de Google?)')); }, 8000);
+    window[nombre] = d => { if(terminado) return; clearTimeout(timer); limpiar(); resolve(d); };
+    sc.onerror = () => { if(terminado) return; clearTimeout(timer); limpiar(); reject(new Error('no se pudo cargar el puente')); };
+    sc.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + nombre + '&t=' + Date.now();
+    document.head.appendChild(sc);
+  });
+}
+
 async function leerEstado(){
   if(!syncUrl){ dbgInfo = 'el link NO trae sync'; return localLeer(); }
-  try{
-    const r = await fetch(syncUrl + (syncUrl.includes('?') ? '&' : '?') + 't=' + Date.now());
-    const d = await r.json();
-    const ok = (d && typeof d === 'object' && Object.keys(d).length);
-    dbgInfo = ok ? ('LEE OK rev ' + d.rev + ' (' + d.nombreA + ' vs ' + d.nombreB + ')') : 'puente vacio';
-    return ok ? d : null;
-  }catch(e){ dbgInfo = 'ERROR al leer: ' + (e && e.message ? e.message : e); return undefined; }
+  let d, via = 'fetch', errFetch = '';
+  if(!usarJsonp){
+    try{
+      const r = await fetch(syncUrl + (syncUrl.includes('?') ? '&' : '?') + 't=' + Date.now());
+      d = await r.json();
+    }catch(e){
+      errFetch = (e && e.message) ? e.message : String(e);
+      usarJsonp = true;
+    }
+  }
+  if(usarJsonp){
+    via = 'script';
+    try{ d = await leerJsonp(syncUrl); }
+    catch(e){ dbgInfo = 'ERROR al leer (fetch: ' + (errFetch || 'falló antes') + ' | script: ' + (e && e.message ? e.message : e) + ')'; return undefined; }
+  }
+  const ok = (d && typeof d === 'object' && Object.keys(d).length);
+  dbgInfo = ok ? ('LEE OK (' + via + ') rev ' + d.rev + ' (' + d.nombreA + ' vs ' + d.nombreB + ')') : 'puente vacio';
+  return ok ? d : null;
 }
 
 let enviando = false, hayPendiente = false, ultimoCambio = 0;
@@ -1129,7 +1161,13 @@ function iniciarPantalla(){
     setInterval(pollPantalla, 800);
   }
 }
+let pollando = false;
 async function pollPantalla(){
+  if(pollando) return;
+  pollando = true;
+  try{ await pollPantallaInterno(); }finally{ pollando = false; }
+}
+async function pollPantallaInterno(){
   const d = await leerEstado();
   let aplicado = '';
   if(d){
